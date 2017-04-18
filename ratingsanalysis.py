@@ -22,7 +22,8 @@ print("---Ratings---")
 ratings.show(3, False)
 
 # Compute the average rating by movie
-avg_rating = ratings.groupBy("movieId").agg({"rating": "avg", "userId": "count"})\
+avg_rating = ratings.groupBy("movieId")\
+    .agg({"rating": "avg", "userId": "count"})\
     .withColumnRenamed("avg(rating)", "avgRating")\
     .withColumnRenamed("count(userId)", "numRatings")
 print("---Average Rating---")
@@ -45,3 +46,10 @@ top_rated_filtered = ratings_with_titles.filter(ratings_with_titles["numRatings"
                                         .limit(5)
 print("--Top 5 rated movies (>20 reviews)--")
 top_rated_filtered.show(5, False)
+
+# How about the lowest rated movies?
+lowest_rated_filtered = ratings_with_titles.filter(ratings_with_titles["numRatings"] > 20)\
+                                        .orderBy("avgRating", ascending=True)\
+                                        .limit(5)
+print("--Lowest 5 rated movies (>20 reviews)--")
+lowest_rated_filtered.show(5, False)
