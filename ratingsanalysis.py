@@ -58,4 +58,5 @@ lowest_rated_filtered.show(5, False)
 from operator import add
 genres = movies.select("genres").distinct().rdd.map(lambda x: x[0])
 genre_counts = genres.flatMap(lambda x: x.split('|')).map(lambda x: (x,1)).reduceByKey(add)
-genre_counts.take(5)
+print("--Genres with movie counts--")
+print(genre_counts.take(5))
