@@ -60,3 +60,14 @@ genres = movies.select("genres").distinct().rdd.map(lambda x: x[0])
 genre_counts = genres.flatMap(lambda x: x.split('|')).map(lambda x: (x,1)).reduceByKey(add)
 print("--Genres with movie counts--")
 print(genre_counts.take(5))
+
+def genre_is_action(genre_row):
+    genre_list = genre_row.split("|")
+    return "Action" in genre_list
+
+from pyspark.sql.functions import udf
+from pyspark.sql.types import BooleanType
+
+action_udf = udf(genre_is_action, BooleanType())
+
+top_rated.withColumn("genre_action", action_udf(top_rated['genres'])).show(5, False)
