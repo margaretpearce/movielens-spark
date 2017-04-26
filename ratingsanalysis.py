@@ -83,3 +83,20 @@ from pyspark.sql import functions
 
 print("--Action genre column (generic)--")
 top_rated.withColumn("genre_action", genre_udf(top_rated['genres'], functions.lit("Action"))).show(5, False)
+
+# Run the function over multiple genres
+def process_genres(movies, genre_value):
+    new_col_name = "genre_" + str(genre_value).strip().replace(' ','').replace('(', '').replace(')', '').lower()
+    movies = movies.withColumn(new_col_name, genre_udf(movies['genres'], functions.lit(genre_value)))
+    return movies
+
+# Testing with 10 genres as a list
+genres_subset = genre_counts.collect()[:10]
+movies_subset = top_rated
+
+# Apply to each genre one by one for now
+for x in genres_subset:
+    movies_subset = process_genres(movies_subset, x[0])
+
+print("--Multiple genre columns--")
+print(movies_subset.columns)
