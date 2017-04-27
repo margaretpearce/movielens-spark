@@ -63,12 +63,14 @@ print(genre_counts.take(5))
 
 def genre_is_action(genre_row):
     genre_list = genre_row.split("|")
-    return "Action" in genre_list
+    if "Action" in genre_list:
+        return 1
+    return 0
 
 from pyspark.sql.functions import udf
-from pyspark.sql.types import BooleanType
+from pyspark.sql.types import IntegerType
 
-action_udf = udf(genre_is_action, BooleanType())
+action_udf = udf(genre_is_action, IntegerType())
 
 print("--Action genre column (non-generic)--")
 top_rated.withColumn("genre_action", action_udf(top_rated['genres'])).show(5, False)
@@ -76,9 +78,11 @@ top_rated.withColumn("genre_action", action_udf(top_rated['genres'])).show(5, Fa
 # Try to generalize the function
 def check_genre(genre_row, genre_value):
     genre_list = genre_row.split("|")
-    return genre_value in genre_list
+    if genre_value in genre_list:
+        return 1
+    return 0
 
-genre_udf = udf(check_genre, BooleanType())
+genre_udf = udf(check_genre, IntegerType())
 from pyspark.sql import functions
 
 print("--Action genre column (generic)--")
