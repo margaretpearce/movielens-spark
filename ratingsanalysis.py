@@ -2,7 +2,6 @@ from pyspark import SparkContext, SQLContext
 
 # Initialize Spark (take parameters from command line)
 sc = SparkContext(appName="MovieRatingsAnalysis")
-# sc.setLogLevel("INFO")
 sqlContext = SQLContext(sc)
 
 # Read in the movies data set
@@ -57,9 +56,10 @@ lowest_rated_filtered.show(5, False)
 # Get all genres
 from operator import add
 genres = movies.select("genres").distinct().rdd.map(lambda x: x[0])
-genre_counts = genres.flatMap(lambda x: x.split('|')).map(lambda x: (x,1)).reduceByKey(add)
+genre_counts = genres.flatMap(lambda x: x.split('|')).map(lambda x: (x, 1)).reduceByKey(add)
 print("--Genres with movie counts--")
 print(genre_counts.take(5))
+
 
 def genre_is_action(genre_row):
     genre_list = genre_row.split("|")
@@ -75,6 +75,7 @@ action_udf = udf(genre_is_action, IntegerType())
 print("--Action genre column (non-generic)--")
 top_rated.withColumn("genre_action", action_udf(top_rated['genres'])).show(5, False)
 
+
 # Try to generalize the function
 def check_genre(genre_row, genre_value):
     genre_list = genre_row.split("|")
@@ -88,9 +89,10 @@ from pyspark.sql import functions
 print("--Action genre column (generic)--")
 top_rated.withColumn("genre_action", genre_udf(top_rated['genres'], functions.lit("Action"))).show(5, False)
 
+
 # Run the function over multiple genres
 def process_genres(movies, genre_value):
-    new_col_name = "genre_" + str(genre_value).strip().replace(' ','').replace('(', '').replace(')', '').lower()
+    new_col_name = "genre_" + str(genre_value).strip().replace(' ', '').replace('(', '').replace(')', '').lower()
     movies = movies.withColumn(new_col_name, genre_udf(movies['genres'], functions.lit(genre_value)))
     return movies
 
@@ -107,21 +109,22 @@ print(movies_subset.columns)
 
 # Run the function over the entire data set
 all_genres = genre_counts.collect()
-movies = ratings_with_titles
+movies_add_genres = ratings_with_titles
 
 for genre in all_genres:
-    movies = process_genres(movies, genre[0])
+    movies_add_genres = process_genres(movies_add_genres, genre[0])
 
 print("--Genres function applied to all movies--")
-movies.show(20, False)
+movies_add_genres.show(20, False)
+
 
 # Extract the year from the movie title
 def extract_year(title_and_year):
-    return str(title_and_year).split("(")[1].replace(")","")
+    return str(title_and_year).split("(")[1].replace(")", "")
 
 from pyspark.sql.functions import StringType
 year_udf = udf(extract_year, StringType())
 
-movies = movies.withColumn("year", year_udf(movies["title"]))
+movies_with_year = movies_add_genres.withColumn("year", year_udf(movies_add_genres["title"]))
 print("--Movie years--")
-movies.show(20, False)
+movies_with_year.show(20, False)
