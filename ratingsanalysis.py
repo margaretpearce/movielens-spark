@@ -104,3 +104,18 @@ for x in genres_subset:
 
 print("--Multiple genre columns--")
 print(movies_subset.columns)
+
+# Run the function over the entire data set
+all_genres = genre_counts.collect()
+movies = ratings_with_titles
+
+for genre in all_genres:
+    movies = process_genres(movies, genre[0])
+
+print("--Genres function applied to all movies--")
+movies.show(20, False)
+
+# Extract the year from the movie title
+# movies = movies.withColumn("year", lambda x: x["title"].split(")")[1].replace(")",""))
+# print("--Movie years--")
+# movies.show(20, False)
