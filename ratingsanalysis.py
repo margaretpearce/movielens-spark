@@ -116,6 +116,12 @@ print("--Genres function applied to all movies--")
 movies.show(20, False)
 
 # Extract the year from the movie title
-# movies = movies.withColumn("year", lambda x: x["title"].split(")")[1].replace(")",""))
-# print("--Movie years--")
-# movies.show(20, False)
+def extract_year(title_and_year):
+    return str(title_and_year).split("(")[1].replace(")","")
+
+from pyspark.sql.functions import StringType
+year_udf = udf(extract_year, StringType())
+
+movies = movies.withColumn("year", year_udf(movies["title"]))
+print("--Movie years--")
+movies.show(20, False)
