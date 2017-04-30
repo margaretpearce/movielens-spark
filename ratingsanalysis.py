@@ -121,7 +121,7 @@ movies_add_genres.show(20, False)
 # Extract the year from the movie title
 def extract_year(title_and_year):
     if "(" in str(title_and_year):
-        return str(title_and_year).split("(")[1].replace(")", "")
+        return str(title_and_year).split("(")[-1].replace(")", "")
     else:
         return None
 
@@ -132,6 +132,5 @@ movies_with_year = movies_add_genres.withColumn("year", year_udf(movies_add_genr
 print("--Movie years--")
 movies_with_year.show(20, False)
 
-import pandas as pd
 movies_pandas = movies_with_year.toPandas()
 movies_pandas.to_csv("movies_pandas.csv")
